@@ -105,26 +105,6 @@ namespace TrustedInt
 
 
         //<<<<<<<<<<<<<<<<<<<<<<<<<<<STRUCTURES>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-        // P/Invoke structure for process entry
-        [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
-
-        struct PROCESSENTRY32W
-        {
-            public uint dwSize;
-            public uint cntUsage;
-            public uint th32ProcessID;
-            public IntPtr th32DefaultHeapID;
-            public uint th32ModuleID;
-            public uint cntThreads;
-            public uint th32ParentProcessID;
-            public int pcPriClassBase;
-            public uint dwFlags;
-            [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
-            public string szExeFile;
-        }
-
-
         // Structure for security attributes
         [StructLayout(LayoutKind.Sequential)]
         struct SECURITY_ATTRIBUTES
@@ -322,7 +302,6 @@ namespace TrustedInt
             CloseServiceHandle(hSCManager);
             throw new Win32Exception("QueryServiceStatusEx failed: " + Marshal.GetLastWin32Error());
         }
-
         public static void CreateProcessAsTrustedInstaller(int parentProcessId, string binaryPath)
         {
             EnablePrivilege("SeDebugPrivilege");
