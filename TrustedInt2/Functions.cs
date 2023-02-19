@@ -17,14 +17,6 @@ namespace TrustedInt
         [DllImport("kernel32.dll", SetLastError = true)]
         static extern bool CloseHandle(IntPtr hObject);
 
-        // P/Invoke signature for opening the process token
-        [DllImport("advapi32.dll", SetLastError = true)]
-        static extern bool OpenProcessToken(IntPtr ProcessHandle, int DesiredAccess, out IntPtr TokenHandle);
-
-        // P/Invoke signature for looking up a privilege value
-        [DllImport("advapi32.dll", SetLastError = true)]
-        internal static extern bool LookupPrivilegeValue(string host, string name, ref long pluid);
-
         // P/Invoke signature for adjusting a token's privileges
         [DllImport("advapi32.dll", ExactSpelling = true, SetLastError = true)]
         internal static extern bool AdjustTokenPrivileges(IntPtr htok, bool disall, ref TokPrivLuid newst, int len, IntPtr prev, IntPtr relen);
@@ -58,12 +50,6 @@ namespace TrustedInt
         static extern bool CloseServiceHandle(IntPtr hSCObject);
      
         [DllImport("kernel32.dll")]
-        public static extern IntPtr GetCurrentProcess();
-
-        [DllImport("advapi32.dll", SetLastError = true)]
-        static extern bool GetUserName(System.Text.StringBuilder sb, ref Int32 length);
-
-        [DllImport("kernel32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         static extern bool CreateProcess(string lpApplicationName, string lpCommandLine, ref SECURITY_ATTRIBUTES lpProcessAttributes, ref SECURITY_ATTRIBUTES lpThreadAttributes, bool bInheritHandles, uint dwCreationFlags, IntPtr lpEnvironment, string lpCurrentDirectory, [In] ref STARTUPINFOEX lpStartupInfo, out PROCESS_INFORMATION lpProcessInformation);
 
@@ -78,11 +64,7 @@ namespace TrustedInt
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool InitializeProcThreadAttributeList(IntPtr lpAttributeList, int dwAttributeCount, int dwFlags, ref IntPtr lpSize);
 
-        //<<<<<<<<<<<<<<<<<<<<<<<<<<<DLLIMPORTS>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-
         //<<<<<<<<<<<<<<<<<<<<<<<<<<<CONSTANTS>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
         // Constants for process access and token attributes
         const uint MAXIMUM_ALLOWED = 0x02000000;
 
@@ -100,10 +82,7 @@ namespace TrustedInt
         const uint EXTENDED_STARTUPINFO_PRESENT = 0x00080000;
         const uint CREATE_NEW_CONSOLE = 0x00000010;
 
-        //<<<<<<<<<<<<<<<<<<<<<<<<<<<CONSTANTS>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
         //<<<<<<<<<<<<<<<<<<<<<<<<<<<STRUCTURES>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-        // Structure for security attributes
         [StructLayout(LayoutKind.Sequential)]
         struct SECURITY_ATTRIBUTES
         {
@@ -112,7 +91,6 @@ namespace TrustedInt
             public bool bInheritHandle;
         }
 
-        // Structure for service status
         [StructLayout(LayoutKind.Sequential)]
         struct SERVICE_STATUS_PROCESS
         {
@@ -173,7 +151,6 @@ namespace TrustedInt
             public STARTUPINFO StartupInfo;
             public IntPtr lpAttributeList;
         }
-        //<<<<<<<<<<<<<<<<<<<<<<<<<<<STRUCTURES>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
         //<<<<<<<<<<<<<<<<<<<<<<<<<<<FLAGS>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         [Flags]
@@ -194,10 +171,7 @@ namespace TrustedInt
             Synchronize = 0x00100000
         }
 
-        //<<<<<<<<<<<<<<<<<<<<<<<<<<<FLAGS>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
         //<<<<<<<<<<<<<<<<<<<<<<<<<<<METHODS>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
         public static bool CheckIfAdmin()
         {
             WindowsIdentity currentIdentity = WindowsIdentity.GetCurrent();
