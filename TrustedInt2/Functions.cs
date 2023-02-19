@@ -83,11 +83,6 @@ namespace TrustedInt
 
         //<<<<<<<<<<<<<<<<<<<<<<<<<<<CONSTANTS>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 
-        // Constants for token access and privilege attributes
-        const int TOKEN_QUERY = 0x0008;
-        const int TOKEN_ADJUST_PRIVILEGES = 0x0020;
-        const int SE_PRIVILEGE_ENABLED = 0x00000002;
-
         // Constants for process access and token attributes
         const uint MAXIMUM_ALLOWED = 0x02000000;
 
@@ -100,9 +95,12 @@ namespace TrustedInt
         const int SC_STATUS_PROCESS_INFO = 0;
         const string ServicesActiveDatabase = "ServicesActive";
 
+        // Constants for spawing child process
+        const int PROC_THREAD_ATTRIBUTE_PARENT_PROCESS = 0x00020000;
+        const uint EXTENDED_STARTUPINFO_PRESENT = 0x00080000;
+        const uint CREATE_NEW_CONSOLE = 0x00000010;
+
         //<<<<<<<<<<<<<<<<<<<<<<<<<<<CONSTANTS>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-
-
 
         //<<<<<<<<<<<<<<<<<<<<<<<<<<<STRUCTURES>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
         // Structure for security attributes
@@ -206,28 +204,6 @@ namespace TrustedInt
             WindowsPrincipal currentPrincipal = new WindowsPrincipal(currentIdentity);
             return currentPrincipal.IsInRole(WindowsBuiltInRole.Administrator);
         }
-        public static bool EnablePrivilege(string privileges)
-        {
-            bool retVal;
-            TokPrivLuid tp;
-            IntPtr hproc = GetCurrentProcess();
-            IntPtr htok = IntPtr.Zero;
-            retVal = OpenProcessToken(hproc, TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, out htok);
-            tp.Count = 1;
-            tp.Luid = 0;
-            tp.Attr = SE_PRIVILEGE_ENABLED;
-            retVal = LookupPrivilegeValue(null, privileges, ref tp.Luid);
-            retVal = AdjustTokenPrivileges(htok, false, ref tp, 0, IntPtr.Zero, IntPtr.Zero);
-            Console.WriteLine(privileges + " enabled: " + retVal);
-            return true;
-        }
-        public static void GetUsername()
-        {
-            StringBuilder Buffer = new StringBuilder(64);
-            int nSize = 64;
-            GetUserName(Buffer, ref nSize);
-            Console.WriteLine(Buffer.ToString());
-        }
         public static bool ImpersonateSystem()
         {
             //impersonate using winlogon.exe SYSTEM token
@@ -246,8 +222,6 @@ namespace TrustedInt
                     else
                     {
                         token = ImpersonateLoggedOnUser(tokenHandle);
-                        Console.Write("User after impersonation: ");
-                        GetUsername();
                         CloseHandle(theProcess.Handle);
                         CloseHandle(tokenHandle);
                         return true;
@@ -304,14 +278,7 @@ namespace TrustedInt
         }
         public static void CreateProcessAsTrustedInstaller(int parentProcessId, string binaryPath)
         {
-            EnablePrivilege("SeDebugPrivilege");
-            EnablePrivilege("SeImpersonatePrivilege");
             ImpersonateSystem();
-
-            const int PROC_THREAD_ATTRIBUTE_PARENT_PROCESS = 0x00020000;
-
-            const uint EXTENDED_STARTUPINFO_PRESENT = 0x00080000;
-            const uint CREATE_NEW_CONSOLE = 0x00000010;
 
             var pInfo = new PROCESS_INFORMATION();
             var siEx = new STARTUPINFOEX();
